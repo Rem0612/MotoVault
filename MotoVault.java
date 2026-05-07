@@ -109,7 +109,7 @@ public class MotoVault {
     // ══════════════════════════ BANNER ════════════════════════════════
     static void printBanner() {
         System.out.println("\n  ╔══════════════════════════════════════════╗");
-        System.out.println("  ║         Welcome to  M O T O V A U L T   ║");
+        System.out.println("  ║         Welcome to  M O T O V A U L T    ║");
         System.out.println("  ║    Motorcycle Inventory & Rental System  ║");
         System.out.println("  ╚══════════════════════════════════════════╝");
     }
@@ -1079,7 +1079,7 @@ public class MotoVault {
     static void printReceipt(String rentalId, String[] rsv,
                               String[] bike, String payment, String staffName) {
         System.out.println("\n  ╔═══════════════════════════════════════════════╗");
-        System.out.println("  ║              M O T O V A U L T               ║");
+        System.out.println("  ║              M O T O V A U L T                ║");
         System.out.println("  ║         OFFICIAL RENTAL RECEIPT               ║");
         System.out.println("  ╠═══════════════════════════════════════════════╣");
         System.out.printf( "  ║  Rental ID   : %-31s║%n", rentalId);
