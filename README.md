@@ -86,7 +86,7 @@ You will be greeted with the **Main Menu**:
 
 ```
   ╔══════════════════════════════════════════╗
-  ║         Welcome to  M O T O V A U L T   ║
+  ║         Welcome to  M O T O V A U L T    ║
   ║    Motorcycle Inventory & Rental System  ║
   ╚══════════════════════════════════════════╝
 
@@ -163,9 +163,9 @@ RENTAL WORKFLOW:                                            │
   [STAFF] View Pending Reservations                         │
       ↓                                                     │
   [STAFF] Confirm Reservation & Process Payment             │
-      ↓ Status: CONFIRMED → Rental created (ACTIVE)        │
+      ↓ Status: CONFIRMED → Rental created (ACTIVE)         │
   [STAFF] Process Return                                    │
-      ↓ Status: RETURNED → Stock restored                  │
+      ↓ Status: RETURNED → Stock restored                   │
 ```
 
 ---
