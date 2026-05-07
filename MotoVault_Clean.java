@@ -1,76 +1,41 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * ============================================================
- *  MotoVault - Motorcycle Inventory & Rental Tracker
- * ============================================================
- *  Roles  : ADMIN (full access), STAFF (limited), USER (view)
- *  Cipher : Caesar Cipher (shift = 3)
- *  Storage: 1D & 2D arrays + flat text files
- *
- *  FLOW:
- *   Main Menu  →  [Login] [Register] [Exit]
- *   After login, role is detected from credentials and the
- *   correct menu (Admin / Staff / User) is opened automatically.
- *
- *  RENTAL FLOW:
- *   User reserves a bike  →  Status: PENDING
- *   Staff confirms + processes payment  →  Status: CONFIRMED
- *   Staff prints receipt  →  Rental record created  →  Status: ACTIVE
- *   Staff processes return  →  Status: RETURNED
- * ============================================================
- */
-public class MotoVault {
+public class MotoVault_Clean {
 
-    // ─────────────────────────── CONSTANTS ────────────────────────────
     static final int MAX_BIKES      = 50;
     static final int MAX_USERS      = 30;
     static final int MAX_RENTALS    = 100;
     static final int MAX_FAVORITES  = 5;
     static final int CAESAR_SHIFT   = 3;
 
-    // File paths
     static final String ADMIN_FILE  = "admin.txt";
     static final String STAFF_FILE  = "staff.txt";
     static final String USERS_FILE  = "users.txt";
     static final String DATA_FILE   = "data.txt";
 
-    // ──────────────────────────── DATA ARRAYS ─────────────────────────
-    // bikes[i] = { brand, model, type, color, engineCC, dailyRate, stock, bikeId }
     static String[][] bikes     = new String[MAX_BIKES][8];
     static int        bikeCount = 0;
 
-    // users[i] = { username, encryptedPassword, role, email, mobile }
     static String[][] users     = new String[MAX_USERS][5];
     static int        userCount = 0;
 
-    // rentals[i] = { rentalId, customerUser, bikeId, startDate, endDate,
-    //                status, paymentMethod, totalCost, days }
     static String[][] rentals     = new String[MAX_RENTALS][9];
     static int        rentalCount = 0;
 
-    // reservations[i] = { reserveId, customerUser, bikeId, startDate, endDate,
-    //                     status, paymentMethod, totalCost, days }
-    //   status values:  PENDING  →  CONFIRMED  (after staff processes payment)
-    //                             →  rental record created automatically
     static String[][] reservations     = new String[MAX_RENTALS][9];
     static int        reservationCount = 0;
 
-    // favorites[userIndex][0..4] = bikeId  (empty string = unused slot)
     static String[][] favorites = new String[MAX_USERS][MAX_FAVORITES];
 
-    // ── Session state ──
     static String currentUser      = "";
     static String currentRole      = "";
     static int    currentUserIndex = -1;
 
     static Scanner sc = new Scanner(System.in);
 
-    // ══════════════════════════ MAIN ══════════════════════════════════
     public static void main(String[] args) {
         loadFiles();
-        initDefaultData();
         printBanner();
 
         boolean running = true;
@@ -88,7 +53,6 @@ public class MotoVault {
             switch (choice) {
                 case "1":
                     if (login()) {
-                        // Route to the correct panel based on the detected role
                         handleCRUD();
                     }
                     break;
@@ -106,7 +70,6 @@ public class MotoVault {
         }
     }
 
-    // ══════════════════════════ BANNER ════════════════════════════════
     static void printBanner() {
         System.out.println("\n  ╔══════════════════════════════════════════╗");
         System.out.println("  ║         Welcome to  M O T O V A U L T    ║");
@@ -114,32 +77,6 @@ public class MotoVault {
         System.out.println("  ╚══════════════════════════════════════════╝");
     }
 
-    // ═════════════════ INITIALIZE DEFAULT DATA ════════════════════════
-    /**
-     * Seeds sample bikes and default accounts only when files are empty.
-     */
-    static void initDefaultData() {
-        if (bikeCount == 0) {
-            seedBike("Honda",    "Click 125i",    "Scooter",      "Red",          "125",  "350", "5");
-            seedBike("Yamaha",   "NMAX 155",      "Scooter",      "Blue",         "155",  "500", "3");
-            seedBike("Kawasaki", "Ninja 400",     "Sport Bike",   "Green/Black",  "399", "1200", "2");
-            seedBike("Honda",    "CRF150L",       "Trail",        "Red/White",    "150",  "600", "4");
-            seedBike("Yamaha",   "MT-07",         "Standard",     "Black",        "689", "1500", "1");
-            seedBike("Kawasaki", "Z400",          "Standard",     "Gray",         "399", "1100", "3");
-            seedBike("Honda",    "ADV 160",       "Scooter",      "Pearl White",  "160",  "550", "2");
-            seedBike("Suzuki",   "Raider R150",   "Underbone",    "Black",        "150",  "400", "5");
-            seedBike("Honda",    "XR150L",        "Motocross",    "Red",          "150",  "700", "2");
-            seedBike("Yamaha",   "Mio Aerox 155", "Scooter",      "White/Blue",   "155",  "480", "4");
-            seedBike("Kawasaki", "KLX 150",       "Off-road Bike","Green",        "150",  "650", "3");
-            seedBike("Suzuki",   "Burgman 200",   "Scooter",      "Silver",       "200",  "750", "1");
-        }
-        if (userCount == 0) {
-            seedUser("admin",  encrypt("admin123"), "ADMIN", "admin@motovault.com",  "09000000001");
-            seedUser("staff1", encrypt("staff123"), "STAFF", "staff@motovault.com",  "09000000002");
-        }
-    }
-
-    /** Appends one bike entry to the bikes array. */
     static void seedBike(String brand, String model, String type,
                          String color, String cc, String rate, String stock) {
         if (bikeCount >= MAX_BIKES) return;
@@ -154,7 +91,6 @@ public class MotoVault {
         bikeCount++;
     }
 
-    /** Appends one user entry and initialises their favourites row. */
     static void seedUser(String username, String encPwd,
                          String role, String email, String mobile) {
         if (userCount >= MAX_USERS) return;
@@ -171,8 +107,6 @@ public class MotoVault {
         return "MV-" + String.format("%04d", index + 1) + "-01";
     }
 
-    // ══════════════════════════ CAESAR CIPHER ═════════════════════════
-    /** Encrypts plain text using Caesar Cipher (shift = CAESAR_SHIFT). */
     static String encrypt(String text) {
         StringBuilder sb = new StringBuilder();
         for (char c : text.toCharArray()) {
@@ -186,7 +120,6 @@ public class MotoVault {
         return sb.toString();
     }
 
-    /** Decrypts a Caesar-encrypted string back to plain text. */
     static String decrypt(String text) {
         StringBuilder sb = new StringBuilder();
         for (char c : text.toCharArray()) {
@@ -200,13 +133,6 @@ public class MotoVault {
         return sb.toString();
     }
 
-    // ══════════════════════════ LOGIN ══════════════════════════════════
-    /**
-     * Unified login: searches all roles. Sets currentUser, currentRole,
-     * and currentUserIndex on success.
-     *
-     * @return true if credentials matched any user record, false otherwise.
-     */
     static boolean login() {
         System.out.println("\n  ─── LOGIN ───");
         System.out.print("  Username : ");
@@ -229,23 +155,10 @@ public class MotoVault {
         return false;
     }
 
-    // ══════════════════════════ VALIDATE INPUT ═════════════════════════
-    /**
-     * Validates an input string against a regular-expression pattern.
-     *
-     * @param input the string to test
-     * @param regex the regex pattern
-     * @return true when input matches regex exactly, false otherwise
-     */
     static boolean validateInput(String input, String regex) {
         return input != null && input.matches(regex);
     }
 
-    // ═════════════════════ HANDLE CRUD (ROUTER) ════════════════════════
-    /**
-     * Routes the logged-in session to the correct role menu.
-     * Called immediately after a successful login().
-     */
     static void handleCRUD() {
         switch (currentRole) {
             case "ADMIN": adminMenu(); break;
@@ -257,8 +170,6 @@ public class MotoVault {
         }
     }
 
-    // ══════════════════════════ FILE I/O ═══════════════════════════════
-    /** Loads all persistent data files into the in-memory arrays. */
     static void loadFiles() {
         loadCredentialFile(ADMIN_FILE, "ADMIN");
         loadCredentialFile(STAFF_FILE, "STAFF");
@@ -266,7 +177,6 @@ public class MotoVault {
         loadDataFile();
     }
 
-    /** Persists all in-memory arrays back to their text files. */
     static void saveFiles() {
         saveCredentialFile(ADMIN_FILE, "ADMIN");
         saveCredentialFile(STAFF_FILE, "STAFF");
@@ -274,7 +184,6 @@ public class MotoVault {
         saveDataFile();
     }
 
-    /** Reads admin.txt or staff.txt and fills the users array for that role. */
     static void loadCredentialFile(String filename, String role) {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
@@ -289,7 +198,6 @@ public class MotoVault {
         } catch (IOException ignored) { /* file created on first save */ }
     }
 
-    /** Reads users.txt and loads USER-role accounts (includes favourites). */
     static void loadUsersFile() {
         try (BufferedReader br = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
@@ -305,10 +213,6 @@ public class MotoVault {
         } catch (IOException ignored) { }
     }
 
-    /**
-     * Reads data.txt (sections [BIKES], [RENTALS], [RESERVATIONS])
-     * and populates the corresponding arrays.
-     */
     static void loadDataFile() {
         try (BufferedReader br = new BufferedReader(new FileReader(DATA_FILE))) {
             String line;
@@ -334,7 +238,6 @@ public class MotoVault {
         } catch (IOException ignored) { }
     }
 
-    /** Writes ADMIN or STAFF credential records to their dedicated file. */
     static void saveCredentialFile(String filename, String role) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(filename))) {
             for (int i = 0; i < userCount; i++) {
@@ -347,7 +250,6 @@ public class MotoVault {
         }
     }
 
-    /** Writes USER accounts (with favourites) to users.txt. */
     static void saveUsersFile() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(USERS_FILE))) {
             for (int i = 0; i < userCount; i++) {
@@ -365,7 +267,6 @@ public class MotoVault {
         }
     }
 
-    /** Writes bikes, rentals, and reservations to data.txt. */
     static void saveDataFile() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(DATA_FILE))) {
             pw.println("[BIKES]");
@@ -390,8 +291,6 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════════ ADMIN MENU ═══════════════════════════════
-    /** Full admin control panel — loops until the admin logs out. */
     static void adminMenu() {
         boolean active = true;
         while (active) {
@@ -434,8 +333,6 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════════ STAFF MENU ═══════════════════════════════
-    /** Staff control panel — loops until the staff member logs out. */
     static void staffMenu() {
         boolean active = true;
         while (active) {
@@ -470,8 +367,6 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════════ USER MENU ════════════════════════════════
-    /** Customer portal — loops until the customer logs out. */
     static void userMenu() {
         boolean active = true;
         while (active) {
@@ -507,11 +402,6 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════ REGISTER (USER ONLY) ═════════════════════════
-    /**
-     * Registers a new USER account from the main menu.
-     * Validates email and mobile with regex before saving.
-     */
     static void registerUser() {
         System.out.println("\n  ─── USER REGISTRATION ───");
 
@@ -540,7 +430,6 @@ public class MotoVault {
             return;
         }
 
-        // ── Regex 1: Email validation ──────────────────────────────────
         System.out.print("  Email address       : ");
         String email = sc.nextLine().trim();
         if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
@@ -548,7 +437,6 @@ public class MotoVault {
             return;
         }
 
-        // ── Regex 2: PH mobile number validation (09XXXXXXXXX) ─────────
         System.out.print("  Mobile (09XXXXXXXXX): ");
         String mobile = sc.nextLine().trim();
         if (!validateInput(mobile, "^09\\d{9}$")) {
@@ -561,8 +449,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════════ VIEW BIKES ═══════════════════════════════
-    /** Displays every bike in the system (admin use). */
     static void viewAllBikes() {
         System.out.println("\n  ─── ALL MOTORBIKES ───");
         printBikeTableHeader();
@@ -570,7 +456,6 @@ public class MotoVault {
         for (int i = 0; i < bikeCount; i++) printBikeRow(i);
     }
 
-    /** Displays only bikes with stock > 0. */
     static void viewAvailableBikes() {
         System.out.println("\n  ─── AVAILABLE MOTORBIKES ───");
         printBikeTableHeader();
@@ -593,10 +478,6 @@ public class MotoVault {
             bikes[i][3], bikes[i][4], bikes[i][5], bikes[i][6]);
     }
 
-    // ════════════════════ VIEW BY TYPE / BRAND ═════════════════════════
-    /**
-     * Shows a numbered type list, then lists all bikes of the chosen type.
-     */
     static void viewBikesByType() {
         String[] types = {
             "Standard", "Cruiser", "Chopper", "Touring", "Motocross",
@@ -636,8 +517,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No bikes found for brand: " + brand + ")");
     }
 
-    // ═════════════════════════ SEARCH MENU ════════════════════════════
-    /** Sub-menu routing to one of three search methods. */
     static void searchMenu() {
         System.out.println("\n  ─── SEARCH MOTORBIKES ───");
         System.out.println("  [1] Search by Bike Name / Model");
@@ -653,7 +532,6 @@ public class MotoVault {
         }
     }
 
-    /** Searches bikes whose brand or model contains the keyword. */
     static void searchByModel() {
         System.out.print("  Enter keyword: ");
         String kw = sc.nextLine().trim().toLowerCase();
@@ -669,7 +547,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No bikes matched \"" + kw + "\".)");
     }
 
-    /** Lists bikes whose daily rate is within the entered range. */
     static void searchByPrice() {
         System.out.print("  Min daily rate (PHP): ");
         String minStr = sc.nextLine().trim();
@@ -690,7 +567,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No bikes in that price range.)");
     }
 
-    /** Lists bikes whose engine displacement is within the entered CC range. */
     static void searchByEngineCC() {
         System.out.print("  Min engine CC: ");
         String minStr = sc.nextLine().trim();
@@ -711,11 +587,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No bikes in that CC range.)");
     }
 
-    // ════════════════════ ADMIN: ADD MOTORBIKE ═════════════════════════
-    /**
-     * Collects bike details from admin, validates numeric fields,
-     * generates a bike ID, and appends to the bikes array.
-     */
     static void addMotorbike() {
         System.out.println("\n  ─── ADD NEW MOTORBIKE ───");
         if (bikeCount >= MAX_BIKES) {
@@ -756,11 +627,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ ADMIN: REMOVE MOTORBIKE ══════════════════════
-    /**
-     * Validates Bike ID format with regex, confirms with admin, then
-     * removes the entry by shifting the array left.
-     */
     static void removeMotorbike() {
         System.out.println("\n  ─── REMOVE MOTORBIKE ───");
         viewAllBikes();
@@ -791,8 +657,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ ADMIN: UPDATE STOCK ══════════════════════════
-    /** Sets a new stock quantity for any bike. */
     static void updateBikeStock() {
         System.out.println("\n  ─── UPDATE BIKE STOCK ───");
         viewAllBikes();
@@ -814,8 +678,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ ADMIN: OUT-OF-STOCK ══════════════════════════
-    /** Lists every bike whose stock is zero. */
     static void viewOutOfStockBikes() {
         System.out.println("\n  ─── OUT-OF-STOCK MOTORBIKES ───");
         printBikeTableHeader();
@@ -826,8 +688,6 @@ public class MotoVault {
         if (!found) System.out.println("  (All bikes are currently in stock.)");
     }
 
-    // ════════════════════ ADMIN: RENTAL RECORDS ════════════════════════
-    /** Prints the complete rental log table. */
     static void viewAllRentalRecords() {
         System.out.println("\n  ─── ALL RENTAL RECORDS ───");
         printRentalTableHeader();
@@ -847,8 +707,6 @@ public class MotoVault {
             rentals[i][4], rentals[i][5], rentals[i][6], rentals[i][7]);
     }
 
-    // ════════════════════ ADMIN: ALL RESERVATIONS ══════════════════════
-    /** Shows every reservation record (any status). */
     static void viewAllReservations() {
         System.out.println("\n  ─── ALL RESERVATION RECORDS ───");
         printReservationTableHeader();
@@ -870,8 +728,6 @@ public class MotoVault {
             reservations[i][6], reservations[i][7]);
     }
 
-    // ════════════════════ ADMIN: ALL ACCOUNTS ══════════════════════════
-    /** Displays every user/staff/admin account (passwords never shown). */
     static void viewAllAccounts() {
         System.out.println("\n  ─── ALL SYSTEM ACCOUNTS ───");
         System.out.printf("  %-16s %-8s %-30s %-14s%n", "Username", "Role", "Email", "Mobile");
@@ -881,10 +737,6 @@ public class MotoVault {
                 users[i][0], users[i][2], users[i][3], users[i][4]);
     }
 
-    // ════════════════════ ADMIN: ADD STAFF ACCOUNT ═════════════════════
-    /**
-     * Creates a new STAFF account with regex-validated email and mobile.
-     */
     static void addStaffAccount() {
         System.out.println("\n  ─── ADD STAFF ACCOUNT ───");
         if (userCount >= MAX_USERS) { System.out.println("  [!] User capacity full."); return; }
@@ -902,14 +754,12 @@ public class MotoVault {
         String password = sc.nextLine().trim();
         if (password.length() < 6) { System.out.println("  [!] Password too short."); return; }
 
-        // ── Regex: Email ────────────────────────────────────────────────
         System.out.print("  Email                   : ");
         String email = sc.nextLine().trim();
         if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
             System.out.println("  [!] Invalid email format."); return;
         }
 
-        // ── Regex: Mobile ───────────────────────────────────────────────
         System.out.print("  Mobile (09XXXXXXXXX)    : ");
         String mobile = sc.nextLine().trim();
         if (!validateInput(mobile, "^09\\d{9}$")) {
@@ -921,8 +771,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ══════════ STAFF: VIEW PENDING RESERVATIONS ═══════════════════════
-    /** Lists only reservations that are awaiting staff approval (PENDING). */
     static void viewPendingReservations() {
         System.out.println("\n  ─── PENDING RESERVATIONS ───");
         printReservationTableHeader();
@@ -933,22 +781,14 @@ public class MotoVault {
         if (!found) System.out.println("  (No pending reservations.)");
     }
 
-    // ══════════ STAFF: CONFIRM RESERVATION & PROCESS PAYMENT ══════════
-    /**
-     * Staff selects a PENDING reservation, chooses a payment method,
-     * marks it CONFIRMED, creates an ACTIVE rental record, decrements
-     * bike stock, and prints a formatted receipt.
-     */
     static void confirmReservationPayment() {
         System.out.println("\n  ─── CONFIRM RESERVATION & PROCESS PAYMENT ───");
 
-        // Show pending reservations first
         viewPendingReservations();
 
         System.out.print("\n  Enter Reserve ID to confirm (e.g. RSV-0001): ");
         String rsvId = sc.nextLine().trim();
 
-        // Find the reservation
         int rsvIdx = -1;
         for (int i = 0; i < reservationCount; i++) {
             if (reservations[i][0].equals(rsvId) && reservations[i][5].equals("PENDING")) {
@@ -961,7 +801,6 @@ public class MotoVault {
             return;
         }
 
-        // Verify the bike is still available
         int bikeIdx = findBikeById(reservations[rsvIdx][2]);
         if (bikeIdx == -1) {
             System.out.println("  [!] Associated bike no longer exists.");
@@ -972,7 +811,6 @@ public class MotoVault {
             return;
         }
 
-        // Show reservation details
         System.out.println("\n  ── Reservation Details ──────────────────────");
         System.out.println("  Reserve ID  : " + reservations[rsvIdx][0]);
         System.out.println("  Customer    : " + reservations[rsvIdx][1]);
@@ -985,7 +823,6 @@ public class MotoVault {
         System.out.println("  Total Cost  : PHP " + reservations[rsvIdx][7]);
         System.out.println("  ─────────────────────────────────────────────");
 
-        // ── Select payment method ──────────────────────────────────────
         String paymentMethod = selectPaymentMethod();
         if (paymentMethod == null) return; // Cancelled
 
@@ -995,29 +832,25 @@ public class MotoVault {
             return;
         }
 
-        // ── Update reservation status ──────────────────────────────────
         reservations[rsvIdx][5] = "CONFIRMED";
         reservations[rsvIdx][6] = paymentMethod;
 
-        // ── Create ACTIVE rental record ────────────────────────────────
         if (rentalCount < MAX_RENTALS) {
             String rentalId = "RNT-" + String.format("%04d", rentalCount + 1);
             rentals[rentalCount][0] = rentalId;
-            rentals[rentalCount][1] = reservations[rsvIdx][1];   // customer
-            rentals[rentalCount][2] = reservations[rsvIdx][2];   // bikeId
-            rentals[rentalCount][3] = reservations[rsvIdx][3];   // startDate
-            rentals[rentalCount][4] = reservations[rsvIdx][4];   // endDate
+            rentals[rentalCount][1] = reservations[rsvIdx][1];   
+            rentals[rentalCount][2] = reservations[rsvIdx][2];   
+            rentals[rentalCount][3] = reservations[rsvIdx][3];   
+            rentals[rentalCount][4] = reservations[rsvIdx][4];   
             rentals[rentalCount][5] = "ACTIVE";
             rentals[rentalCount][6] = paymentMethod;
-            rentals[rentalCount][7] = reservations[rsvIdx][7];   // totalCost
-            rentals[rentalCount][8] = reservations[rsvIdx][8];   // days
+            rentals[rentalCount][7] = reservations[rsvIdx][7];   
+            rentals[rentalCount][8] = reservations[rsvIdx][8];   
             rentalCount++;
 
-            // ── Decrement bike stock ───────────────────────────────────
             int newStock = Integer.parseInt(bikes[bikeIdx][6]) - 1;
             bikes[bikeIdx][6] = String.valueOf(newStock);
 
-            // ── Print receipt ──────────────────────────────────────────
             printReceipt(rentalId, reservations[rsvIdx], bikes[bikeIdx], paymentMethod, currentUser);
 
             if (newStock == 0)
@@ -1030,11 +863,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ PAYMENT METHOD SELECTOR ══════════════════════
-    /**
-     * Displays the payment method menu and returns the selected method name.
-     * Returns null if the user cancels.
-     */
     static String selectPaymentMethod() {
         System.out.println("\n  ─── SELECT PAYMENT METHOD ───");
         System.out.println("  [1] GCash");
@@ -1065,17 +893,6 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════════ RECEIPT PRINTER ══════════════════════════
-    /**
-     * Prints a formatted rental receipt to the console after payment is
-     * processed. Called exclusively by confirmReservationPayment().
-     *
-     * @param rentalId    the newly created rental ID
-     * @param rsv         the reservation row (9-element array)
-     * @param bike        the bike row (8-element array)
-     * @param payment     payment method string
-     * @param staffName   name of the staff who processed the transaction
-     */
     static void printReceipt(String rentalId, String[] rsv,
                               String[] bike, String payment, String staffName) {
         System.out.println("\n  ╔═══════════════════════════════════════════════╗");
@@ -1114,10 +931,6 @@ public class MotoVault {
         System.out.println("  ╚═══════════════════════════════════════════════╝");
     }
 
-    // ════════════════════ STAFF: PROCESS RETURN ════════════════════════
-    /**
-     * Marks an ACTIVE rental as RETURNED and restores the bike's stock by 1.
-     */
     static void processReturn() {
         System.out.println("\n  ─── PROCESS MOTORBIKE RETURN ───");
         System.out.print("  Enter Rental ID (e.g. RNT-0001): ");
@@ -1153,14 +966,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ USER: RESERVE A BIKE ═════════════════════════
-    /**
-     * Customer reservation:
-     * – selects a bike and a start/end date
-     * – cost is calculated and shown before confirmation
-     * – reservation is saved as PENDING (awaiting staff approval + payment)
-     * – no rental is created and no stock is decremented at this stage
-     */
     static void reserveBike() {
         System.out.println("\n  ─── RESERVE A MOTORBIKE ───");
         System.out.println("  Note: Reservations are subject to staff approval and payment.");
@@ -1181,7 +986,6 @@ public class MotoVault {
             return;
         }
 
-        // ── Regex 4: Start date (DD/MM/YYYY) ───────────────────────────
         System.out.print("  Start date (DD/MM/YYYY): ");
         String startDate = sc.nextLine().trim();
         if (!validateInput(startDate, "^\\d{2}/\\d{2}/\\d{4}$")) {
@@ -1189,7 +993,6 @@ public class MotoVault {
             return;
         }
 
-        // ── Regex: End date (DD/MM/YYYY) ────────────────────────────────
         System.out.print("  End date   (DD/MM/YYYY): ");
         String endDate = sc.nextLine().trim();
         if (!validateInput(endDate, "^\\d{2}/\\d{2}/\\d{4}$")) {
@@ -1206,7 +1009,6 @@ public class MotoVault {
         int dailyRate  = Integer.parseInt(bikes[bikeIdx][5]);
         int totalCost  = days * dailyRate;
 
-        // Show reservation summary before confirming
         System.out.println("\n  ── Reservation Summary ─────────────────────");
         System.out.println("  Bike        : " + bikes[bikeIdx][0] + " " + bikes[bikeIdx][1]);
         System.out.println("  Type        : " + bikes[bikeIdx][2]);
@@ -1225,7 +1027,6 @@ public class MotoVault {
             return;
         }
 
-        // Save reservation with PENDING status; no payment method yet
         String rsvId = "RSV-" + String.format("%04d", reservationCount + 1);
         reservations[reservationCount][0] = rsvId;
         reservations[reservationCount][1] = currentUser;
@@ -1233,9 +1034,9 @@ public class MotoVault {
         reservations[reservationCount][3] = startDate;
         reservations[reservationCount][4] = endDate;
         reservations[reservationCount][5] = "PENDING";
-        reservations[reservationCount][6] = "";                        // payment method (set by staff)
-        reservations[reservationCount][7] = String.valueOf(totalCost); // total cost
-        reservations[reservationCount][8] = String.valueOf(days);      // number of days
+        reservations[reservationCount][6] = "";                        
+        reservations[reservationCount][7] = String.valueOf(totalCost); 
+        reservations[reservationCount][8] = String.valueOf(days);      
         reservationCount++;
 
         System.out.println("  [✓] Reservation submitted!");
@@ -1244,8 +1045,6 @@ public class MotoVault {
         saveFiles();
     }
 
-    // ════════════════════ USER: VIEW MY RESERVATIONS ═══════════════════
-    /** Shows only the logged-in customer's reservations. */
     static void viewMyReservations() {
         System.out.println("\n  ─── MY RESERVATIONS ───");
         System.out.printf("  %-12s %-12s %-12s %-12s %-12s %-14s %-10s%n",
@@ -1264,8 +1063,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No reservations on record.)");
     }
 
-    // ════════════════════ USER: VIEW MY RENTAL STATUS ══════════════════
-    /** Shows only the logged-in customer's confirmed/active rental records. */
     static void viewMyRentalStatus() {
         System.out.println("\n  ─── MY RENTAL STATUS ───");
         printRentalTableHeader();
@@ -1276,8 +1073,6 @@ public class MotoVault {
         if (!found) System.out.println("  (No rental records for your account.)");
     }
 
-    // ════════════════════ USER: FAVOURITES ═════════════════════════════
-    /** Favourites sub-menu: view, add, remove, or compare saved bikes. */
     static void manageFavourites() {
         boolean active = true;
         while (active) {
@@ -1299,7 +1094,6 @@ public class MotoVault {
         }
     }
 
-    /** Renders the current user's favourites list as a bike table. */
     static void displayFavourites() {
         boolean found = false;
         for (int j = 0; j < MAX_FAVORITES; j++) {
@@ -1313,7 +1107,6 @@ public class MotoVault {
         if (!found) System.out.println("  (Your favourites list is empty.)");
     }
 
-    /** Saves a bike ID into the first free slot of the user's favourites. */
     static void addToFavourites() {
         viewAvailableBikes();
         System.out.print("\n  Bike ID to add to favourites: ");
@@ -1339,7 +1132,6 @@ public class MotoVault {
         System.out.println("  [!] Favourites full (max " + MAX_FAVORITES + "). Remove one first.");
     }
 
-    /** Clears a bike ID from the user's favourites array. */
     static void removeFromFavourites() {
         displayFavourites();
         System.out.print("\n  Bike ID to remove: ");
@@ -1355,7 +1147,6 @@ public class MotoVault {
         System.out.println("  [!] Bike not found in favourites.");
     }
 
-    /** Prints a side-by-side comparison table of all favourited bikes. */
     static void compareFavourites() {
         System.out.println("\n  ─── FAVOURITES COMPARISON ───");
         int[] favIdx = new int[MAX_FAVORITES];
@@ -1379,23 +1170,12 @@ public class MotoVault {
         }
     }
 
-    // ════════════════════════ HELPER METHODS ═══════════════════════════
-
-    /** Returns the array index of a bike by its ID string, or -1 if not found. */
     static int findBikeById(String bikeId) {
         for (int i = 0; i < bikeCount; i++)
             if (bikes[i][7] != null && bikes[i][7].equals(bikeId)) return i;
         return -1;
     }
 
-    /**
-     * Calculates the number of days between two DD/MM/YYYY dates
-     * using a simplified day-count formula.
-     *
-     * @param start date string "DD/MM/YYYY"
-     * @param end   date string "DD/MM/YYYY"
-     * @return number of days (≥ 0), or 1 on parse failure
-     */
     static int calculateDays(String start, String end) {
         try {
             String[] s = start.split("/");
@@ -1410,7 +1190,6 @@ public class MotoVault {
         }
     }
 
-    /** Clears session state (call on every logout). */
     static void logoutSession() {
         System.out.println("  [✓] " + currentUser + " logged out successfully.");
         currentUser      = "";
@@ -1418,10 +1197,6 @@ public class MotoVault {
         currentUserIndex = -1;
     }
 
-    /**
-     * Right-pads or truncates a string to exactly n characters.
-     * Used for box-drawing alignment in menus.
-     */
     static String padRight(String s, int n) {
         if (s.length() >= n) return s.substring(0, n);
         StringBuilder sb = new StringBuilder(s);
