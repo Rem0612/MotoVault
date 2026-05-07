@@ -1,0 +1,20 @@
+[BIKES]
+Honda|Click 125i|Scooter|Red|125|350|5|MV-0001-01
+Yamaha|NMAX 155|Scooter|Blue|155|500|2|MV-0002-01
+Kawasaki|Ninja 400|Sport Bike|Green/Black|399|1200|2|MV-0003-01
+Honda|CRF150L|Trail|Red/White|150|600|4|MV-0004-01
+Yamaha|MT-07|Standard|Black|689|1500|1|MV-0005-01
+Kawasaki|Z400|Standard|Gray|399|1100|3|MV-0006-01
+Honda|ADV 160|Scooter|Pearl White|160|550|2|MV-0007-01
+Suzuki|Raider R150|Underbone|Black|150|400|5|MV-0008-01
+Honda|XR150L|Motocross|Red|150|700|2|MV-0009-01
+Yamaha|Mio Aerox 155|Scooter|White/Blue|155|480|4|MV-0010-01
+Kawasaki|KLX 150|Off-road Bike|Green|150|650|3|MV-0011-01
+Suzuki|Burgman 200|Scooter|Silver|200|750|1|MV-0012-01
+Yamaha|Sniper 150|Underbone|Black|150|500|10|MV-0013-01
+Suzuki|Raider Pro|Underbone|Black|150|1200|9|MV-0014-01
+[RENTALS]
+RNT-0001|Sayabo|MV-0002-01|05/05/2026|05/10/2026|ACTIVE|75000
+RNT-0002|Sayabo|MV-0014-01|05/05/2026|05/05/2026|ACTIVE|1200
+[RESERVATIONS]
+RSV-0001|Sayabo|MV-0006-01|12/11/2026|PENDING
