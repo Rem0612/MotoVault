@@ -421,6 +421,7 @@ public class MotoVault {
             System.out.println("║  [10] View All Reservations      ║");
             System.out.println("║  [11] View All Accounts          ║");
             System.out.println("║  [12] Add Staff Account          ║");
+            System.out.println("║  [13] Remove Account             ║");
             System.out.println("║  [0]  Logout                     ║");
             System.out.println("╚══════════════════════════════════╝");
             System.out.print("  Enter choice: ");
@@ -462,7 +463,24 @@ public class MotoVault {
                 case "9":  viewAllRentalRecords();   break;
                 case "10": viewAllReservations();    break;
                 case "11": viewAllAccounts();        break;
-                case "12": addStaffAccount();        break;
+                case "12": 
+                    System.out.print("  Proceed to Add Staff Account? (Y/N): ");
+                    String addStaffChoice = sc.nextLine().trim().toUpperCase();
+                    if (addStaffChoice.equals("Y")) {
+                         addStaffAccount();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
+                case "13": 
+                    System.out.print("  Proceed to Remove Account? (Y/N): ");
+                    String removeAccountChoice = sc.nextLine().trim().toUpperCase();
+                    if (removeAccountChoice.equals("Y")) {
+                        removeAccount();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
                 case "0": 
                 System.out.print("  Are you sure you want to logout? (Y/N): ");
                 String logoutChoice = sc.nextLine().trim().toUpperCase();
@@ -1578,4 +1596,66 @@ public class MotoVault {
         System.out.println("    - At least one number (0-9)");
         System.out.println("    - At least one special character (!@#$%^&* etc.)");
     }
-   }
+
+    static void removeAccount() {
+        System.out.println("\n  ─── REMOVE ACCOUNT ───");
+        System.out.println("  Removable roles: USER, STAFF");
+        System.out.println("  (ADMIN accounts cannot be removed here.)");
+
+        System.out.printf("  %-16s %-8s %-30s %-14s%n", "Username", "Role", "Email", "Mobile");
+        System.out.println("  " + "─".repeat(72));
+        for (int i = 0; i < userCount; i++) {
+            if (users[i][2].equals("USER") || users[i][2].equals("STAFF")) {
+                System.out.printf("  %-16s %-8s %-30s %-14s%n",
+                    users[i][0], users[i][2], users[i][3], users[i][4]);
+            }
+        }
+
+        System.out.print("\n  Enter username to remove (or 0 to cancel): ");
+        String target = sc.nextLine().trim();
+        if (target.equals("0")) { System.out.println("  Cancelled."); return; }
+
+        // Block removal of own account
+        if (target.equalsIgnoreCase(currentUser)) {
+            System.out.println("  [!] You cannot remove your own account.");
+            return;
+        }
+
+        int idx = -1;
+        for (int i = 0; i < userCount; i++) {
+            if (users[i][0].equalsIgnoreCase(target)
+                    && (users[i][2].equals("USER") || users[i][2].equals("STAFF"))) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx == -1) {
+            System.out.println("  [!] Account not found or role is not removable.");
+            return;
+        }
+
+        System.out.println("  Account found  : " + users[idx][0]
+                        + "  [" + users[idx][2] + "]  " + users[idx][3]);
+        System.out.print("  Confirm removal? (Y/N): ");
+        if (!sc.nextLine().trim().equalsIgnoreCase("Y")) {
+            System.out.println("  Removal cancelled.");
+            return;
+        }
+
+        // Clear favourites row for this user
+        for (int j = 0; j < MAX_FAVORITES; j++) favorites[idx][j] = "";
+
+        // Shift users array left to fill the gap
+        for (int i = idx; i < userCount - 1; i++) {
+            for (int j = 0; j < 5; j++) users[i][j] = users[i + 1][j];
+            for (int j = 0; j < MAX_FAVORITES; j++) favorites[i][j] = favorites[i + 1][j];
+        }
+        // Clear the last slot
+        for (int j = 0; j < 5; j++) users[userCount - 1][j] = "";
+        for (int j = 0; j < MAX_FAVORITES; j++) favorites[userCount - 1][j] = "";
+        userCount--;
+
+        System.out.println("  [✓] Account \"" + target + "\" removed successfully.");
+        saveFiles();
+    }
+}
