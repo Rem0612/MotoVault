@@ -702,7 +702,7 @@ public class MotoVault {
         } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
        
         
-
+        seedUser(username, encrypt(password), "USER", email, mobile);
         System.out.println("  [✓] Registration successful! You may now login.");
         saveFiles();
     }
@@ -1067,6 +1067,7 @@ public class MotoVault {
             System.out.println("  [!] Invalid mobile. Must be 09XXXXXXXXX."); return;
         }
 
+        seedUser(username, encrypt(password), "STAFF", email, mobile);
         System.out.println("  [✓] Staff account created: " + username);
         saveFiles();
     }
