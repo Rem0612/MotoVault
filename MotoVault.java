@@ -21,7 +21,7 @@ import java.util.*;
  *   Staff processes return  →  Status: RETURNED
  * ============================================================
  */
-public class Motovault {
+public class MotoVault {
 
     // ─────────────────────────── CONSTANTS ────────────────────────────
     static final int MAX_BIKES      = 50;
@@ -221,7 +221,7 @@ public class Motovault {
      */
     static boolean login() {
         System.out.println("\n  ─── LOGIN ───");
-        System.out.println("  (Enter 0 at any field to cancel)");
+        System.out.println("  [!] Enter 0 at any time to cancel login.");
         System.out.print("  Username : ");
         String username = sc.nextLine().trim();
         if (username.equals("0")) { 
@@ -230,6 +230,10 @@ public class Motovault {
         }
         System.out.print("  Password : ");
         String password = sc.nextLine().trim();
+         if (password.equals("0")) { 
+            System.out.println("  Login cancelled."); 
+            return false; 
+        }
         String encPwd = encrypt(password);
         for (int i = 0; i < userCount; i++) {
             if (users[i][0].equals(username) && users[i][1].equals(encPwd)) {
@@ -600,6 +604,7 @@ public class Motovault {
         String username;
         do {
             System.out.println("  [!] Note: Username must be unique and contain no spaces.");
+            System.out.println("  [!] Enter 0 at any time to cancel registration.");
             System.out.print("  Username: ");
             username = sc.nextLine().trim();
             if (username.equals("0")) { 
