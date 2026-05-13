@@ -21,7 +21,7 @@ import java.util.*;
  *   Staff processes return  →  Status: RETURNED
  * ============================================================
  */
-public class MotoVault_Original {
+public class MotoVault_Copy {
 
     // ─────────────────────────── CONSTANTS ────────────────────────────
     static final int MAX_BIKES      = 50;
@@ -69,8 +69,8 @@ public class MotoVault_Original {
 
     // ══════════════════════════ MAIN ══════════════════════════════════
     public static void main(String[] args) {
-        loadFiles();
         printBanner();
+        initDefaultData();
         Mainmenu();
     }
 
@@ -130,6 +130,55 @@ public class MotoVault_Original {
         System.out.println("  ╚════════════════════════════════════════════╝");
     }
 
+    static void initDefaultData() {
+        if (bikeCount == 0) {
+            seedBike("Honda",    "Click 125i",    "Scooter",      "Red",          "125",  "350", "5");
+            seedBike("Yamaha",   "NMAX 155",      "Scooter",      "Blue",         "155",  "500", "3");
+            seedBike("Kawasaki", "Ninja 400",     "Sport Bike",   "Green/Black",  "399", "1200", "2");
+            seedBike("Honda",    "CRF150L",       "Trail",        "Red/White",    "150",  "600", "4");
+            seedBike("Yamaha",   "MT-07",         "Standard",     "Black",        "689", "1500", "1");
+            seedBike("Kawasaki", "Z400",          "Standard",     "Gray",         "399", "1100", "3");
+            seedBike("Honda",    "ADV 160",       "Scooter",      "Pearl White",  "160",  "550", "2");
+            seedBike("Suzuki",   "Raider R150",   "Underbone",    "Black",        "150",  "400", "5");
+            seedBike("Honda",    "XR150L",        "Motocross",    "Red",          "150",  "700", "2");
+            seedBike("Yamaha",   "Mio Aerox 155", "Scooter",      "White/Blue",   "155",  "480", "4");
+            seedBike("Kawasaki", "KLX 150",       "Off-road Bike","Green",        "150",  "650", "3");
+            seedBike("Suzuki",   "Burgman 200",   "Scooter",      "Silver",       "200",  "750", "1");
+        }
+        if (userCount == 0) {
+            seedUser("admin",  encrypt("admin123"), "ADMIN", "admin@motovault.com",  "09000000001");
+            seedUser("staff1", encrypt("staff123"), "STAFF", "staff@motovault.com",  "09000000002");
+        }
+    }
+
+    /** Appends one bike entry to the bikes array. */
+    static void seedBike(String brand, String model, String type,
+                         String color, String cc, String rate, String stock) {
+        if (bikeCount >= MAX_BIKES) return;
+        bikes[bikeCount][0] = brand;
+        bikes[bikeCount][1] = model;
+        bikes[bikeCount][2] = type;
+        bikes[bikeCount][3] = color;
+        bikes[bikeCount][4] = cc;
+        bikes[bikeCount][5] = rate;
+        bikes[bikeCount][6] = stock;
+        bikes[bikeCount][7] = generateBikeId(bikeCount);
+        bikeCount++;
+    }
+
+    /** Appends one user entry and initialises their favourites row. */
+    static void seedUser(String username, String encPwd,
+                         String role, String email, String mobile) {
+        if (userCount >= MAX_USERS) return;
+        users[userCount][0] = username;
+        users[userCount][1] = encPwd;
+        users[userCount][2] = role;
+        users[userCount][3] = email;
+        users[userCount][4] = mobile;
+        for (int j = 0; j < MAX_FAVORITES; j++) favorites[userCount][j] = "";
+        userCount++;
+    }
+
     static String generateBikeId(int index) {
         return "MV-" + String.format("%04d", index + 1) + "-01";
     }
@@ -172,7 +221,7 @@ public class MotoVault_Original {
      */
     static boolean login() {
         System.out.println("\n  ─── LOGIN ───");
-        System.out.println("  (Enter 0 at any field to cancel)");
+        System.out.println("  [!] Enter 0 at any time to cancel login.");
         System.out.print("  Username : ");
         String username = sc.nextLine().trim();
         if (username.equals("0")) { 
@@ -181,6 +230,10 @@ public class MotoVault_Original {
         }
         System.out.print("  Password : ");
         String password = sc.nextLine().trim();
+         if (password.equals("0")) { 
+            System.out.println("  Login cancelled."); 
+            return false; 
+        }
         String encPwd = encrypt(password);
         for (int i = 0; i < userCount; i++) {
             if (users[i][0].equals(username) && users[i][1].equals(encPwd)) {
@@ -222,15 +275,6 @@ public class MotoVault_Original {
                 System.out.println("  [!] Unknown role. Access denied.");
                 logoutSession();
         }
-    }
-
-    // ══════════════════════════ FILE I/O ═══════════════════════════════
-    /** Loads all persistent data files into the in-memory arrays. */
-    static void loadFiles() {
-        loadCredentialFile(ADMIN_FILE, "ADMIN");
-        loadCredentialFile(STAFF_FILE, "STAFF");
-        loadUsersFile();
-        loadDataFile();
     }
 
     /** Persists all in-memory arrays back to their text files. */
@@ -377,6 +421,7 @@ public class MotoVault_Original {
             System.out.println("║  [10] View All Reservations      ║");
             System.out.println("║  [11] View All Accounts          ║");
             System.out.println("║  [12] Add Staff Account          ║");
+            System.out.println("║  [13] Remove Account             ║");
             System.out.println("║  [0]  Logout                     ║");
             System.out.println("╚══════════════════════════════════╝");
             System.out.print("  Enter choice: ");
@@ -387,15 +432,66 @@ public class MotoVault_Original {
                 case "2":  viewBikesByType();        break;
                 case "3":  viewBikesByBrand();       break;
                 case "4":  searchMenu();             break;
-                case "5":  addMotorbike();           break;
-                case "6":  removeMotorbike();        break;
-                case "7":  updateBikeStock();        break;
+                case "5":  
+                    System.out.print("  Proceed to Add Motorbike? (Y/N): ");
+                    String addChoice = sc.nextLine().trim().toUpperCase();
+                    if (addChoice.equals("Y")) {
+                        addMotorbike();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
+                case "6":  
+                    System.out.print("  Proceed to Remove Motorbike? (Y/N): ");
+                    String removeChoice = sc.nextLine().trim().toUpperCase();
+                    if (removeChoice.equals("Y")) {
+                        removeMotorbike();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
+                case "7":  
+                    System.out.print("  Proceed to Update Bike Stock? (Y/N): ");
+                    String updateChoice = sc.nextLine().trim().toUpperCase();
+                    if (updateChoice.equals("Y")) {
+                         updateBikeStock();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
                 case "8":  viewOutOfStockBikes();    break;
                 case "9":  viewAllRentalRecords();   break;
                 case "10": viewAllReservations();    break;
                 case "11": viewAllAccounts();        break;
-                case "12": addStaffAccount();        break;
-                case "0":  logoutSession(); active = false; break;
+                case "12": 
+                    System.out.print("  Proceed to Add Staff Account? (Y/N): ");
+                    String addStaffChoice = sc.nextLine().trim().toUpperCase();
+                    if (addStaffChoice.equals("Y")) {
+                         addStaffAccount();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
+                case "13": 
+                    System.out.print("  Proceed to Remove Account? (Y/N): ");
+                    String removeAccountChoice = sc.nextLine().trim().toUpperCase();
+                    if (removeAccountChoice.equals("Y")) {
+                        removeAccount();
+                    } else {
+                        System.out.println("  Returning to Admin Menu...");
+                    }
+                    break;
+                case "0": 
+                System.out.print("  Are you sure you want to logout? (Y/N): ");
+                String logoutChoice = sc.nextLine().trim().toUpperCase();
+                if (logoutChoice.equals("Y")) {
+                    System.out.println("  Logging out...");
+                    logoutSession(); 
+                    active = false; 
+                } else {
+                    System.out.println("  Logout cancelled. Returning to Admin Menu...");
+                }
+                break;
                 default:   System.out.println("  [!] Invalid choice.");
             }
         }
@@ -431,7 +527,17 @@ public class MotoVault_Original {
                 case "6": confirmReservationPayment(); break;
                 case "7": processReturn();             break;
                 case "8": viewAllRentalRecords();      break;
-                case "0": logoutSession(); active = false; break;
+                case "0": 
+                System.out.print("  Are you sure you want to logout? (Y/N): ");
+                String logoutChoice = sc.nextLine().trim().toUpperCase();
+                if (logoutChoice.equals("Y")) {
+                    System.out.println("  Logging out...");
+                    logoutSession(); 
+                    active = false; 
+                } else {
+                    System.out.println("  Logout cancelled. Returning to Staff Menu...");
+                }
+                break;
                 default:  System.out.println("  [!] Invalid choice.");
             }
         }
@@ -460,15 +566,41 @@ public class MotoVault_Original {
             String choice = sc.nextLine().trim();
 
             switch (choice) {
-                case "1": viewAvailableBikes();  break;
-                case "2": viewBikesByType();     break;
-                case "3": viewBikesByBrand();    break;
-                case "4": searchMenu();          break;
-                case "5": reserveBike();         break;
+                case "1": 
+                    viewAvailableBikes();  
+                    break;
+                case "2": 
+                    viewBikesByType();     
+                    break;
+                case "3": 
+                    viewBikesByBrand();    
+                    break;
+                case "4": 
+                    searchMenu();          
+                    break;
+                case "5": 
+                    System.out.print("  Proceed to Reserve a Motorbike? (Y/N): ");
+                    String reserveChoice = sc.nextLine().trim().toUpperCase();
+                    if (reserveChoice.equals("Y")) {
+                        reserveBike();
+                    } else {
+                        System.out.println("  Returning to Customer Portal...");
+                    }        
+                    break;
                 case "6": viewMyReservations();  break;
                 case "7": viewMyRentalStatus();  break;
                 case "8": manageFavourites();    break;
-                case "0": logoutSession(); active = false; break;
+                case "0":
+                    System.out.print("  Are you sure you want to logout? (Y/N): ");
+                    String logoutChoice = sc.nextLine().trim().toUpperCase();
+                    if (logoutChoice.equals("Y")) {
+                        System.out.println("  Logging out...");
+                        logoutSession();
+                        active = false;
+                    } else {
+                        System.out.println("  Logout cancelled. Returning to User Menu...");
+                    }
+                    break;
                 default:  System.out.println("  [!] Invalid choice.");
             }
         }
@@ -490,6 +622,7 @@ public class MotoVault_Original {
         String username;
         do {
             System.out.println("  [!] Note: Username must be unique and contain no spaces.");
+            System.out.println("  [!] Enter 0 at any time to cancel registration.");
             System.out.print("  Username: ");
             username = sc.nextLine().trim();
             if (username.equals("0")) { 
@@ -523,6 +656,7 @@ public class MotoVault_Original {
             String confirm = sc.nextLine().trim();
             if (!password.equals(confirm)) {
                 System.out.println("  [!] Passwords do not match. Try again.");
+                System.out.println("  [!] Press Enter to Continue.");
                 password = ""; // force loop to retry
                 continue;
             }
@@ -1461,5 +1595,67 @@ public class MotoVault_Original {
         System.out.println("    - At least one lowercase letter (a-z)");
         System.out.println("    - At least one number (0-9)");
         System.out.println("    - At least one special character (!@#$%^&* etc.)");
+    }
+
+    static void removeAccount() {
+        System.out.println("\n  ─── REMOVE ACCOUNT ───");
+        System.out.println("  Removable roles: USER, STAFF");
+        System.out.println("  (ADMIN accounts cannot be removed here.)");
+
+        System.out.printf("  %-16s %-8s %-30s %-14s%n", "Username", "Role", "Email", "Mobile");
+        System.out.println("  " + "─".repeat(72));
+        for (int i = 0; i < userCount; i++) {
+            if (users[i][2].equals("USER") || users[i][2].equals("STAFF")) {
+                System.out.printf("  %-16s %-8s %-30s %-14s%n",
+                    users[i][0], users[i][2], users[i][3], users[i][4]);
+            }
+        }
+
+        System.out.print("\n  Enter username to remove (or 0 to cancel): ");
+        String target = sc.nextLine().trim();
+        if (target.equals("0")) { System.out.println("  Cancelled."); return; }
+
+        // Block removal of own account
+        if (target.equalsIgnoreCase(currentUser)) {
+            System.out.println("  [!] You cannot remove your own account.");
+            return;
+        }
+
+        int idx = -1;
+        for (int i = 0; i < userCount; i++) {
+            if (users[i][0].equalsIgnoreCase(target)
+                    && (users[i][2].equals("USER") || users[i][2].equals("STAFF"))) {
+                idx = i;
+                break;
+            }
+        }
+        if (idx == -1) {
+            System.out.println("  [!] Account not found or role is not removable.");
+            return;
+        }
+
+        System.out.println("  Account found  : " + users[idx][0]
+                        + "  [" + users[idx][2] + "]  " + users[idx][3]);
+        System.out.print("  Confirm removal? (Y/N): ");
+        if (!sc.nextLine().trim().equalsIgnoreCase("Y")) {
+            System.out.println("  Removal cancelled.");
+            return;
+        }
+
+        // Clear favourites row for this user
+        for (int j = 0; j < MAX_FAVORITES; j++) favorites[idx][j] = "";
+
+        // Shift users array left to fill the gap
+        for (int i = idx; i < userCount - 1; i++) {
+            for (int j = 0; j < 5; j++) users[i][j] = users[i + 1][j];
+            for (int j = 0; j < MAX_FAVORITES; j++) favorites[i][j] = favorites[i + 1][j];
+        }
+        // Clear the last slot
+        for (int j = 0; j < 5; j++) users[userCount - 1][j] = "";
+        for (int j = 0; j < MAX_FAVORITES; j++) favorites[userCount - 1][j] = "";
+        userCount--;
+
+        System.out.println("  [✓] Account \"" + target + "\" removed successfully.");
+        saveFiles();
     }
 }
