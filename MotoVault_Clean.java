@@ -1,5 +1,9 @@
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class MotoVault_Clean {
 
@@ -37,7 +41,10 @@ public class MotoVault_Clean {
     public static void main(String[] args) {
         loadFiles();
         printBanner();
+        Mainmenu();
+    }
 
+    static void Mainmenu() {
         boolean running = true;
         while (running) {
             System.out.println("\n╔══════════════════════════════╗");
@@ -52,12 +59,26 @@ public class MotoVault_Clean {
 
             switch (choice) {
                 case "1":
-                    if (login()) {
+                    System.out.print("  Proceed to Login? (Y/N): ");
+                    String loginChoice = sc.nextLine().trim().toUpperCase();
+                    if (loginChoice.equals("Y")) {
+                        if (login()) {
                         handleCRUD();
+                        }
+                    } else {
+                        System.out.println("Returning to main menu...");
+                        Mainmenu();
                     }
                     break;
                 case "2":
-                    registerUser();
+                    System.out.print("  Proceed to Register? (Y/N): ");
+                    String registerChoice = sc.nextLine().trim().toUpperCase();
+                    if (registerChoice.equals("Y")) {  
+                        registerUser();
+                    } else {
+                        System.out.println("Returning to main menu...");
+                        Mainmenu();
+                    }
                     break;
                 case "3":
                     saveFiles();
@@ -71,36 +92,10 @@ public class MotoVault_Clean {
     }
 
     static void printBanner() {
-        System.out.println("\n  ╔══════════════════════════════════════════╗");
-        System.out.println("  ║         Welcome to  M O T O V A U L T    ║");
-        System.out.println("  ║    Motorcycle Inventory & Rental System  ║");
-        System.out.println("  ╚══════════════════════════════════════════╝");
-    }
-
-    static void seedBike(String brand, String model, String type,
-                         String color, String cc, String rate, String stock) {
-        if (bikeCount >= MAX_BIKES) return;
-        bikes[bikeCount][0] = brand;
-        bikes[bikeCount][1] = model;
-        bikes[bikeCount][2] = type;
-        bikes[bikeCount][3] = color;
-        bikes[bikeCount][4] = cc;
-        bikes[bikeCount][5] = rate;
-        bikes[bikeCount][6] = stock;
-        bikes[bikeCount][7] = generateBikeId(bikeCount);
-        bikeCount++;
-    }
-
-    static void seedUser(String username, String encPwd,
-                         String role, String email, String mobile) {
-        if (userCount >= MAX_USERS) return;
-        users[userCount][0] = username;
-        users[userCount][1] = encPwd;
-        users[userCount][2] = role;
-        users[userCount][3] = email;
-        users[userCount][4] = mobile;
-        for (int j = 0; j < MAX_FAVORITES; j++) favorites[userCount][j] = "";
-        userCount++;
+        System.out.println("\n  ╔════════════════════════════════════════════╗");
+        System.out.println("  ║         Welcome to  M O T O V A U L T      ║");
+        System.out.println("  ║    Motorcycle Inventory & Rental System    ║");
+        System.out.println("  ╚════════════════════════════════════════════╝");
     }
 
     static String generateBikeId(int index) {
@@ -135,11 +130,15 @@ public class MotoVault_Clean {
 
     static boolean login() {
         System.out.println("\n  ─── LOGIN ───");
+        System.out.println("  (Enter 0 at any field to cancel)");
         System.out.print("  Username : ");
         String username = sc.nextLine().trim();
+        if (username.equals("0")) { 
+            System.out.println("  Login cancelled."); 
+            return false; 
+        }
         System.out.print("  Password : ");
         String password = sc.nextLine().trim();
-
         String encPwd = encrypt(password);
         for (int i = 0; i < userCount; i++) {
             if (users[i][0].equals(username) && users[i][1].equals(encPwd)) {
@@ -195,7 +194,7 @@ public class MotoVault_Clean {
                     userCount++;
                 }
             }
-        } catch (IOException ignored) { /* file created on first save */ }
+        } catch (IOException ignored) { }
     }
 
     static void loadUsersFile() {
@@ -410,12 +409,18 @@ public class MotoVault_Clean {
             return;
         }
 
-        System.out.print("  Username (no spaces): ");
-        String username = sc.nextLine().trim();
-        if (username.isEmpty() || username.contains(" ")) {
-            System.out.println("  [!] Invalid username. No spaces allowed.");
-            return;
-        }
+        String username;
+        do {
+            System.out.print("  Username (no spaces): ");
+            username = sc.nextLine().trim();
+            if (username.equals("0")) { 
+                System.out.println("  Registration cancelled."); 
+                return; 
+            }
+            System.out.println("  You entered: " + username);
+            System.out.print("  Is this correct? (Y/N): ");
+            } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
+        
         for (int i = 0; i < userCount; i++) {
             if (users[i][0].equalsIgnoreCase(username)) {
                 System.out.println("  [!] Username already taken.");
@@ -423,12 +428,27 @@ public class MotoVault_Clean {
             }
         }
 
-        System.out.print("  Password (min 6 characters): ");
-        String password = sc.nextLine().trim();
-        if (password.length() < 6) {
-            System.out.println("  [!] Password too short (minimum 6 characters).");
-            return;
-        }
+        String password;
+        do {
+            printPasswordRules();
+            System.out.print("  Password: ");
+            password = sc.nextLine().trim();
+            if (password.equals("0")) { System.out.println("  Registration cancelled."); return; }
+            if (!isPasswordStrong(password)) {
+                System.out.println("  [!] Password too weak. Try again.");
+                System.out.println("  [!] Press Enter to Continue.");
+                sc.nextLine();
+                continue;
+            }
+            System.out.print("  Re-enter password: ");
+            String confirm = sc.nextLine().trim();
+            if (!password.equals(confirm)) {
+                System.out.println("  [!] Passwords do not match. Try again.");
+                password = ""; 
+                continue;
+            }
+            System.out.print("  Password accepted. Keep this password? (Y/N): ");
+        } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
 
         System.out.print("  Email address       : ");
         String email = sc.nextLine().trim();
@@ -444,7 +464,6 @@ public class MotoVault_Clean {
             return;
         }
 
-        seedUser(username, encrypt(password), "USER", email, mobile);
         System.out.println("  [✓] Registration successful! You may now login.");
         saveFiles();
     }
@@ -478,6 +497,7 @@ public class MotoVault_Clean {
             bikes[i][3], bikes[i][4], bikes[i][5], bikes[i][6]);
     }
 
+    
     static void viewBikesByType() {
         String[] types = {
             "Standard", "Cruiser", "Chopper", "Touring", "Motocross",
@@ -504,7 +524,6 @@ public class MotoVault_Clean {
         if (!found) System.out.println("  (No bikes found for type: " + types[idx] + ")");
     }
 
-    /** Prompts for a brand name and lists all matching bikes. */
     static void viewBikesByBrand() {
         System.out.print("\n  Enter brand name: ");
         String brand = sc.nextLine().trim();
@@ -634,7 +653,7 @@ public class MotoVault_Clean {
         System.out.print("\n  Enter Bike ID to remove (e.g. MV-0001-01): ");
         String bikeId = sc.nextLine().trim();
 
-        // ── Regex 3: Bike ID format (MV-XXXX-XX) ──────────────────────
+        
         if (!validateInput(bikeId, "^MV-\\d{4}-\\d{2}$")) {
             System.out.println("  [!] Invalid Bike ID format. Must be MV-XXXX-XX.");
             return;
@@ -749,10 +768,15 @@ public class MotoVault_Clean {
                 return;
             }
         }
-
-        System.out.print("  Password (min 6 chars)  : ");
+        
+        printPasswordRules();
+        System.out.println("  Password (min 8 chars): ");
         String password = sc.nextLine().trim();
-        if (password.length() < 6) { System.out.println("  [!] Password too short."); return; }
+        if (!isPasswordStrong(password)) {
+            printPasswordRules();
+            System.out.println("  [!] Password does not meet requirements.");
+            return;
+        }
 
         System.out.print("  Email                   : ");
         String email = sc.nextLine().trim();
@@ -766,7 +790,6 @@ public class MotoVault_Clean {
             System.out.println("  [!] Invalid mobile. Must be 09XXXXXXXXX."); return;
         }
 
-        seedUser(username, encrypt(password), "STAFF", email, mobile);
         System.out.println("  [✓] Staff account created: " + username);
         saveFiles();
     }
@@ -824,7 +847,7 @@ public class MotoVault_Clean {
         System.out.println("  ─────────────────────────────────────────────");
 
         String paymentMethod = selectPaymentMethod();
-        if (paymentMethod == null) return; // Cancelled
+        if (paymentMethod == null) return; 
 
         System.out.print("\n  Confirm reservation and process payment? (Y/N): ");
         if (!sc.nextLine().trim().equalsIgnoreCase("Y")) {
@@ -1202,5 +1225,23 @@ public class MotoVault_Clean {
         StringBuilder sb = new StringBuilder(s);
         while (sb.length() < n) sb.append(' ');
         return sb.toString();
+    }
+    
+    static boolean isPasswordStrong(String password) {
+        if (password.length() < 8)                          return false;
+        if (!password.matches(".*[A-Z].*"))                 return false;
+        if (!password.matches(".*[a-z].*"))                 return false;
+        if (!password.matches(".*[0-9].*"))                 return false;
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) return false;
+        return true;
+    }
+
+    static void printPasswordRules() {
+        System.out.println("  Password requirements:");
+        System.out.println("    - Minimum 8 characters");
+        System.out.println("    - At least one uppercase letter (A-Z)");
+        System.out.println("    - At least one lowercase letter (a-z)");
+        System.out.println("    - At least one number (0-9)");
+        System.out.println("    - At least one special character (!@#$%^&* etc.)");
     }
 }
