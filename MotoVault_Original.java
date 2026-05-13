@@ -21,7 +21,7 @@ import java.util.*;
  *   Staff processes return  →  Status: RETURNED
  * ============================================================
  */
-public class Test {
+public class MotoVault_Original {
 
     // ─────────────────────────── CONSTANTS ────────────────────────────
     static final int MAX_BIKES      = 50;
@@ -69,8 +69,8 @@ public class Test {
 
     // ══════════════════════════ MAIN ══════════════════════════════════
     public static void main(String[] args) {
+        loadFiles();
         printBanner();
-        initDefaultData();
         Mainmenu();
     }
 
@@ -128,55 +128,6 @@ public class Test {
         System.out.println("  ║         Welcome to  M O T O V A U L T      ║");
         System.out.println("  ║    Motorcycle Inventory & Rental System    ║");
         System.out.println("  ╚════════════════════════════════════════════╝");
-    }
-
-    static void initDefaultData() {
-        if (bikeCount == 0) {
-            seedBike("Honda",    "Click 125i",    "Scooter",      "Red",          "125",  "350", "5");
-            seedBike("Yamaha",   "NMAX 155",      "Scooter",      "Blue",         "155",  "500", "3");
-            seedBike("Kawasaki", "Ninja 400",     "Sport Bike",   "Green/Black",  "399", "1200", "2");
-            seedBike("Honda",    "CRF150L",       "Trail",        "Red/White",    "150",  "600", "4");
-            seedBike("Yamaha",   "MT-07",         "Standard",     "Black",        "689", "1500", "1");
-            seedBike("Kawasaki", "Z400",          "Standard",     "Gray",         "399", "1100", "3");
-            seedBike("Honda",    "ADV 160",       "Scooter",      "Pearl White",  "160",  "550", "2");
-            seedBike("Suzuki",   "Raider R150",   "Underbone",    "Black",        "150",  "400", "5");
-            seedBike("Honda",    "XR150L",        "Motocross",    "Red",          "150",  "700", "2");
-            seedBike("Yamaha",   "Mio Aerox 155", "Scooter",      "White/Blue",   "155",  "480", "4");
-            seedBike("Kawasaki", "KLX 150",       "Off-road Bike","Green",        "150",  "650", "3");
-            seedBike("Suzuki",   "Burgman 200",   "Scooter",      "Silver",       "200",  "750", "1");
-        }
-        if (userCount == 0) {
-            seedUser("admin",  encrypt("admin123"), "ADMIN", "admin@motovault.com",  "09000000001");
-            seedUser("staff1", encrypt("staff123"), "STAFF", "staff@motovault.com",  "09000000002");
-        }
-    }
-
-    /** Appends one bike entry to the bikes array. */
-    static void seedBike(String brand, String model, String type,
-                         String color, String cc, String rate, String stock) {
-        if (bikeCount >= MAX_BIKES) return;
-        bikes[bikeCount][0] = brand;
-        bikes[bikeCount][1] = model;
-        bikes[bikeCount][2] = type;
-        bikes[bikeCount][3] = color;
-        bikes[bikeCount][4] = cc;
-        bikes[bikeCount][5] = rate;
-        bikes[bikeCount][6] = stock;
-        bikes[bikeCount][7] = generateBikeId(bikeCount);
-        bikeCount++;
-    }
-
-    /** Appends one user entry and initialises their favourites row. */
-    static void seedUser(String username, String encPwd,
-                         String role, String email, String mobile) {
-        if (userCount >= MAX_USERS) return;
-        users[userCount][0] = username;
-        users[userCount][1] = encPwd;
-        users[userCount][2] = role;
-        users[userCount][3] = email;
-        users[userCount][4] = mobile;
-        for (int j = 0; j < MAX_FAVORITES; j++) favorites[userCount][j] = "";
-        userCount++;
     }
 
     static String generateBikeId(int index) {
@@ -271,6 +222,15 @@ public class Test {
                 System.out.println("  [!] Unknown role. Access denied.");
                 logoutSession();
         }
+    }
+
+    // ══════════════════════════ FILE I/O ═══════════════════════════════
+    /** Loads all persistent data files into the in-memory arrays. */
+    static void loadFiles() {
+        loadCredentialFile(ADMIN_FILE, "ADMIN");
+        loadCredentialFile(STAFF_FILE, "STAFF");
+        loadUsersFile();
+        loadDataFile();
     }
 
     /** Persists all in-memory arrays back to their text files. */
@@ -427,24 +387,8 @@ public class Test {
                 case "2":  viewBikesByType();        break;
                 case "3":  viewBikesByBrand();       break;
                 case "4":  searchMenu();             break;
-                case "5":  
-                    System.out.print("  Proceed to Add Motorbike? (Y/N): ");
-                    String addChoice = sc.nextLine().trim().toUpperCase();
-                    if (addChoice.equals("Y")) {
-                        addMotorbike();
-                    } else {
-                        System.out.println("  Returning to Admin Menu...");
-                    }
-                    break;
-                case "6":  
-                    System.out.print("  Proceed to Remove Motorbike? (Y/N): ");
-                    String removeChoice = sc.nextLine().trim().toUpperCase();
-                    if (removeChoice.equals("Y")) {
-                        removeMotorbike();
-                    } else {
-                        System.out.println("  Returning to Admin Menu...");
-                    }
-                    break;
+                case "5":  addMotorbike();           break;
+                case "6":  removeMotorbike();        break;
                 case "7":  updateBikeStock();        break;
                 case "8":  viewOutOfStockBikes();    break;
                 case "9":  viewAllRentalRecords();   break;
@@ -516,18 +460,10 @@ public class Test {
             String choice = sc.nextLine().trim();
 
             switch (choice) {
-                case "1": 
-                    viewAvailableBikes();  
-                    break;
-                case "2": 
-                    viewBikesByType();     
-                    break;
-                case "3": 
-                    viewBikesByBrand();    
-                    break;
-                case "4": 
-                    searchMenu();          
-                    break;
+                case "1": viewAvailableBikes();  break;
+                case "2": viewBikesByType();     break;
+                case "3": viewBikesByBrand();    break;
+                case "4": searchMenu();          break;
                 case "5": reserveBike();         break;
                 case "6": viewMyReservations();  break;
                 case "7": viewMyRentalStatus();  break;
@@ -587,7 +523,6 @@ public class Test {
             String confirm = sc.nextLine().trim();
             if (!password.equals(confirm)) {
                 System.out.println("  [!] Passwords do not match. Try again.");
-                System.out.println("  [!] Press Enter to Continue.");
                 password = ""; // force loop to retry
                 continue;
             }
@@ -1527,4 +1462,4 @@ public class Test {
         System.out.println("    - At least one number (0-9)");
         System.out.println("    - At least one special character (!@#$%^&* etc.)");
     }
-   }
+}
