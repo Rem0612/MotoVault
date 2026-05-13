@@ -489,7 +489,8 @@ public class MotoVault {
 
         String username;
         do {
-            System.out.print("  Username (no spaces): ");
+            System.out.println("  [!] Note: Username must be unique and contain no spaces.");
+            System.out.print("  Username: ");
             username = sc.nextLine().trim();
             if (username.equals("0")) { 
                 System.out.println("  Registration cancelled."); 
@@ -516,7 +517,6 @@ public class MotoVault {
             if (!isPasswordStrong(password)) {
                 System.out.println("  [!] Password too weak. Try again.");
                 System.out.println("  [!] Press Enter to Continue.");
-                sc.nextLine();
                 continue;
             }
             System.out.print("  Re-enter password: ");
@@ -530,20 +530,44 @@ public class MotoVault {
         } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
 
         // ── Regex 1: Email validation ──────────────────────────────────
-        System.out.print("  Email address       : ");
-        String email = sc.nextLine().trim();
-        if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
-            System.out.println("  [!] Invalid email format (e.g., user@example.com).");
-            return;
-        }
+        String email;
+        do {
+            System.out.print("  Email address       : ");
+            email = sc.nextLine().trim();
+            if (email.equals("0")) { 
+                System.out.println("  Registration cancelled."); 
+                return; 
+            }
+            if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
+                System.out.println("  [!] Invalid email format (e.g., user@example.com).");
+                System.out.println("  [!] Press Enter to Continue.");
+                continue; 
+            }
+            System.out.println("  You entered: " + email);
+            System.out.print("  Is this correct? (Y/N): ");
+            } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
+           
+            
 
         // ── Regex 2: PH mobile number validation (09XXXXXXXXX) ─────────
-        System.out.print("  Mobile (09XXXXXXXXX): ");
-        String mobile = sc.nextLine().trim();
-        if (!validateInput(mobile, "^09\\d{9}$")) {
+        String mobile;
+        do {
+            System.out.print("  Mobile (09XXXXXXXXX): ");
+            mobile = sc.nextLine().trim();
+            if (mobile.equals("0")) { 
+                System.out.println("  Registration cancelled."); 
+                return; 
+            }
+            if (!validateInput(mobile, "^09\\d{9}$")) {
             System.out.println("  [!] Invalid mobile. Format must be 09XXXXXXXXX (11 digits).");
-            return;
+            System.out.println("  [!] Press Enter to Continue.");
+            continue;
         }
+            System.out.println("  You entered: " + mobile);
+            System.out.print("  Is this correct? (Y/N): ");
+        } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
+       
+        
 
         System.out.println("  [✓] Registration successful! You may now login.");
         saveFiles();
