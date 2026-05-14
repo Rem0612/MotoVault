@@ -69,6 +69,7 @@ public class MotoVault {
 
     // ══════════════════════════ MAIN ══════════════════════════════════
     public static void main(String[] args) {
+        loadFiles();
         printBanner();
         initDefaultData();
         Mainmenu();
@@ -275,6 +276,15 @@ public class MotoVault {
                 System.out.println("  [!] Unknown role. Access denied.");
                 logoutSession();
         }
+    }
+
+    // ══════════════════════════ FILE I/O ═══════════════════════════════
+    /** Loads all persistent data files into the in-memory arrays. */
+    static void loadFiles() {
+        loadCredentialFile(ADMIN_FILE, "ADMIN");
+        loadCredentialFile(STAFF_FILE, "STAFF");
+        loadUsersFile();
+        loadDataFile();
     }
 
     /** Persists all in-memory arrays back to their text files. */

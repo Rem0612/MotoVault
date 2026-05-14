@@ -185,8 +185,8 @@ RENTAL WORKFLOW:                                            │
 | View All Rental Records | Full rental log with payment info |
 | View All Reservations | All reservations regardless of status |
 | View All Accounts | Lists all users, staff, and admins |
-| Add Staff Account | Create a new staff account |
-
+| Add Staff Account | Create a new staff account 
+| Remove Account | Remove user and Staff Accounts | 
 ---
 
 ### 🟡 STAFF
