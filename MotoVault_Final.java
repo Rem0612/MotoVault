@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class MotoVault_Clean {
+public class MotoVault_Final {
 
     static final int MAX_BIKES      = 50;
     static final int MAX_USERS      = 30;

@@ -1045,8 +1045,21 @@ public class MotoVault {
         System.out.println("\n  ─── ADD STAFF ACCOUNT ───");
         if (userCount >= MAX_USERS) { System.out.println("  [!] User capacity full."); return; }
 
-        System.out.print("  Staff username          : ");
-        String username = sc.nextLine().trim();
+        String username;
+        do{
+            System.out.println("  [!] Note: Username must be unique and contain no spaces.");
+            System.out.println("  [!] Enter 0 at any time to cancel.");
+            System.out.print("  Staff username: ");
+            username = sc.nextLine().trim();
+            if (username.equals("0")) { 
+                System.out.println("  Staff account creation cancelled."); 
+                return; 
+            }
+            
+            System.out.println("  You entered: " + username);
+            System.out.print("  Is this correct? (Y/N): ");
+        } while (!sc.nextLine().trim().toUpperCase().equals("Y"));
+
         for (int i = 0; i < userCount; i++) {
             if (users[i][0].equalsIgnoreCase(username)) {
                 System.out.println("  [!] Username already taken.");
@@ -1054,34 +1067,67 @@ public class MotoVault {
             }
         }
         
-        printPasswordRules();
-        System.out.println("  Password (min 8 chars): ");
-        String password = sc.nextLine().trim();
-        if (!isPasswordStrong(password)) {
+        String password;
+        do {
             printPasswordRules();
-            System.out.println("  [!] Password does not meet requirements.");
-            return;
-        }
+            System.out.print("  Password: ");
+            password = sc.nextLine().trim();
+            if (password.equals("0")) { System.out.println("  Staff Registration cancelled."); return; }
+            if (!isPasswordStrong(password)) {
+                System.out.println("  [!] Password too weak. Try again.");
+                System.out.println("  [!] Press Enter to Continue.");
+                continue;
+            }
+            System.out.print("  Re-enter password: ");
+            String confirm = sc.nextLine().trim();
+            if (!password.equals(confirm)) {
+                System.out.println("  [!] Passwords do not match. Try again.");
+                System.out.println("  [!] Press Enter to Continue.");
+                password = ""; 
+                continue;
+            }
+            System.out.print("  Password accepted. Keep this password? (Y/N): ");
+        } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
 
-        // ── Regex: Email ────────────────────────────────────────────────
-        System.out.print("  Email                   : ");
-        String email = sc.nextLine().trim();
-        if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
-            System.out.println("  [!] Invalid email format."); return;
+        String email;
+        do {
+            System.out.print("  Email address       : ");
+            email = sc.nextLine().trim();
+            if (email.equals("0")) { 
+                System.out.println("  Staff Registration cancelled."); 
+                return; 
+            }
+            if (!validateInput(email, "^[\\w._%+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,}$")) {
+                System.out.println("  [!] Invalid email format (e.g., user@example.com).");
+                System.out.println("  [!] Press Enter to Continue.");
+                continue; 
+            }
+            System.out.println("  You entered: " + email);
+            System.out.print("  Is this correct? (Y/N): ");
+            } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
+           
+        String mobile;
+        do {
+            System.out.print("  Mobile (09XXXXXXXXX): ");
+            mobile = sc.nextLine().trim();
+            if (mobile.equals("0")) { 
+                System.out.println("  Staff Registration cancelled."); 
+                return; 
+            }
+            if (!validateInput(mobile, "^09\\d{9}$")) {
+            System.out.println("  [!] Invalid mobile. Format must be 09XXXXXXXXX (11 digits).");
+            System.out.println("  [!] Press Enter to Continue.");
+            continue;
         }
-
-        // ── Regex: Mobile ───────────────────────────────────────────────
-        System.out.print("  Mobile (09XXXXXXXXX)    : ");
-        String mobile = sc.nextLine().trim();
-        if (!validateInput(mobile, "^09\\d{9}$")) {
-            System.out.println("  [!] Invalid mobile. Must be 09XXXXXXXXX."); return;
-        }
+            System.out.println("  You entered: " + mobile);
+            System.out.print("  Is this correct? (Y/N): ");
+        } while (!sc.nextLine().trim().equalsIgnoreCase("Y"));
 
         seedUser(username, encrypt(password), "STAFF", email, mobile);
         System.out.println("  [✓] Staff account created: " + username);
         saveFiles();
     }
-
+    
     // ══════════ STAFF: VIEW PENDING RESERVATIONS ═══════════════════════
     /** Lists only reservations that are awaiting staff approval (PENDING). */
     static void viewPendingReservations() {
@@ -1281,6 +1327,18 @@ public class MotoVault {
      */
     static void processReturn() {
         System.out.println("\n  ─── PROCESS MOTORBIKE RETURN ───");
+        printRentalTableHeader();
+        boolean found = false;
+        for (int i = 0; i < rentalCount; i++) {
+            if (rentals[i][5].equals("ACTIVE")) { 
+                printRentalRow(i); 
+                found = true; 
+            }
+        }
+        if (!found) {
+            System.out.println("  [!] No active rentals found.");
+            return;
+        }
         System.out.print("  Enter Rental ID (e.g. RNT-0001): ");
         String rentalId = sc.nextLine().trim();
 
